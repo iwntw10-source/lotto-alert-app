@@ -1,0 +1,9 @@
+{
+  "appId": "com.lottoalert.app",
+  "appName": "복권 알림이",
+  "webDir": "www",
+  "plugins": {
+    "CapacitorHttp": { "enabled": true }
+  },
+  "server": { "androidScheme": "https" }
+}

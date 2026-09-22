@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<title>복권 알림이</title>
+<style>
+  :root {
+    --bg: #f6f7f4; --card: #ffffff; --ink: #1d2523; --sub: #66716e; --line: #e4e8e5;
+    --brand: #0f766e; --brand-ink: #ffffff; --gold: #b45309; --gold-bg: #fef3c7;
+    --miss: #8a948f;
+    --b1: #f5b800; --b2: #2f80ed; --b3: #e5484d; --b4: #7b8794; --b5: #2fa84f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #101413; --card: #181d1c; --ink: #e8eeeb; --sub: #93a09b; --line: #263130;
+      --brand: #2dd4bf; --brand-ink: #062a26; --gold: #fbbf24; --gold-bg: #3a2c07;
+      --miss: #6c7873;
+    }
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif; }
+  body { padding: calc(env(safe-area-inset-top) + 12px) 16px calc(env(safe-area-inset-bottom) + 40px + var(--ad-h, 0px)); max-width: 560px; margin: 0 auto; }
+  header { display: flex; align-items: center; justify-content: space-between; padding: 6px 2px 14px; }
+  h1 { font-size: 22px; margin: 0; letter-spacing: -0.02em; }
+  .icon-btn { border: 1px solid var(--line); background: var(--card); color: var(--ink); width: 40px; height: 40px;
+    border-radius: 12px; font-size: 18px; }
+  .icon-btn[aria-pressed="false"] { opacity: .45; }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 16px; margin-bottom: 12px; }
+  .label { font-size: 12px; color: var(--sub); font-weight: 600; letter-spacing: .02em; }
+
+  .btn { border: 0; border-radius: 16px; padding: 18px 8px; font-size: 16px; font-weight: 700; font-family: inherit;
+    display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .btn .em { font-size: 26px; line-height: 1; }
+  .btn.primary { background: var(--brand); color: var(--brand-ink); }
+  .btn.ghost { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
+  .btn:active { transform: scale(.98); }
+  .btn:disabled { opacity: .5; }
+
+  .balls { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .ball { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 800;
+    font-size: 14px; color: #fff; text-shadow: 0 1px 0 rgba(0,0,0,.25); }
+  .ball.c1 { background: var(--b1); } .ball.c2 { background: var(--b2); } .ball.c3 { background: var(--b3); }
+  .ball.c4 { background: var(--b4); } .ball.c5 { background: var(--b5); }
+  .ball.dim { background: transparent; color: var(--miss); border: 1.5px solid var(--line); text-shadow: none; font-weight: 600; }
+  .ball.hit { outline: 3px solid var(--brand); outline-offset: 1px; }
+  .plus { color: var(--sub); font-weight: 700; padding: 0 2px; }
+
+  .banner { border-radius: 18px; padding: 16px; margin-bottom: 12px; }
+  .banner.win { background: var(--gold-bg); color: var(--gold); border: 1px solid var(--gold); }
+  .banner.none { background: var(--card); border: 1px solid var(--line); }
+  .banner .t { font-size: 20px; font-weight: 800; letter-spacing: -.02em; }
+  .banner .s { font-size: 13px; margin-top: 4px; opacity: .85; }
+
+  .sec-title { display: flex; justify-content: space-between; align-items: baseline; margin: 18px 4px 8px; }
+  .sec-title b { font-size: 15px; }
+  .sec-title span { font-size: 12px; color: var(--sub); }
+
+  .ticket { position: relative; }
+  .ticket .del { position: absolute; top: 8px; right: 10px; border: 0; background: none; color: var(--sub); font-size: 18px; padding: 6px; }
+  .ticket .meta { font-size: 12px; color: var(--sub); margin-bottom: 8px; }
+  .game { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 0; border-top: 1px solid var(--line); }
+  .game:first-of-type { border-top: 0; }
+  .game .balls { gap: 5px; }
+  .game .ball { width: 30px; height: 30px; font-size: 13px; }
+  .badge { font-size: 12px; font-weight: 800; padding: 5px 9px; border-radius: 999px; white-space: nowrap; }
+  .badge.win { background: var(--gold-bg); color: var(--gold); border: 1px solid var(--gold); }
+  .badge.miss { color: var(--miss); border: 1px solid var(--line); font-weight: 600; }
+  .badge.wait { color: var(--sub); border: 1px dashed var(--line); font-weight: 600; }
+
+  .empty { text-align: center; color: var(--sub); padding: 30px 10px; line-height: 1.6; font-size: 14px; }
+  .empty .em { font-size: 40px; display: block; margin-bottom: 6px; }
+
+  .hbtns { display: flex; gap: 8px; }
+
+  /* 상단의 큰 등록 버튼 — 이 앱의 주 기능 */
+  .regbtn { display: flex; align-items: center; justify-content: center; gap: 18px; width: 100%; min-height: 148px; border: 0;
+    border-radius: 28px; background: var(--brand); color: var(--brand-ink); font: inherit; padding: 32px 18px; margin-bottom: 14px;
+    box-shadow: 0 10px 26px rgba(15,118,110,.30); }
+  .regbtn:active { transform: scale(.98); }
+  .regbtn .plus2 { font-size: 56px; line-height: 1; font-weight: 400; }
+  .regbtn .lbl { text-align: left; font-size: 32px; font-weight: 800; letter-spacing: -.03em; line-height: 1.12; }
+  .regbtn small { display: block; font-size: 14px; font-weight: 500; opacity: .88; letter-spacing: 0; margin-top: 6px; }
+
+  /* 등록 방법 선택 시트 */
+  .opt { display: flex; align-items: center; gap: 16px; width: 100%; text-align: left; border: 1px solid var(--line);
+    background: var(--bg); color: var(--ink); border-radius: 18px; padding: 18px 16px; margin-bottom: 10px; font: inherit; }
+  .opt:active { transform: scale(.985); }
+  .opt .em { font-size: 34px; line-height: 1; }
+  .opt b { display: block; font-size: 18px; }
+  .opt .d { display: block; font-size: 13px; color: var(--sub); margin-top: 3px; }
+  .opt.primary { background: var(--brand); color: var(--brand-ink); border-color: transparent; }
+  .opt.primary .d { color: inherit; opacity: .85; }
+  #reg-sheet .linkbtn { padding: 10px 0 4px; }
+  .icon-btn.spin { animation: spin .9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* 회차 이동 */
+  .draw { padding: 14px 14px 18px; }
+  .nav { display: flex; align-items: center; gap: 6px; }
+  .navbtn { flex: none; width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--bg); color: var(--ink);
+    font-size: 26px; line-height: 1; padding: 0 0 3px; }
+  .navbtn:disabled { opacity: .25; }
+  .navbtn:active:not(:disabled) { transform: scale(.94); }
+  .navtitle { flex: 1; min-width: 0; border: 0; background: none; font: inherit; color: inherit; padding: 4px 2px; text-align: center; }
+  .navtitle:active { opacity: .7; }
+  .navtitle .t { display: block; font-size: 22px; font-weight: 800; letter-spacing: -.02em; }
+  .navtitle .caret { font-size: 12px; color: var(--sub); margin-left: 5px; vertical-align: 3px; }
+  .navtitle .s { display: block; font-size: 12.5px; color: var(--sub); margin-top: 2px; }
+  #drawcard { margin-top: 14px; text-align: center; }
+  #drawcard .balls { justify-content: center; }
+  #drawcard .sub { font-size: 13px; color: var(--sub); margin-top: 10px; }
+  #drawcard .note { font-size: 14px; color: var(--sub); padding: 8px 0 2px; }
+  #drawcard .retry { margin-top: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 999px;
+    padding: 8px 16px; font: inherit; font-size: 13px; font-weight: 700; }
+
+  /* 회차 선택 시트 — 기존 시트보다 낮게(목록이 길어도 화면을 다 덮지 않도록), 목록은 둥근 알약 형태 */
+  #draw-sheet .sheet-body { max-height: 64vh; }
+  .draw-list { overflow-y: auto; margin-top: 2px; }
+  .draw-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; border: 1px solid var(--line);
+    background: var(--bg); color: var(--ink); border-radius: 14px; padding: 13px 16px; margin-bottom: 8px; font: inherit; font-size: 15px;
+    font-weight: 700; text-align: left; }
+  .draw-row:last-child { margin-bottom: 0; }
+  .draw-row:active { transform: scale(.985); }
+  .draw-row.sel { border-color: var(--brand); background: var(--card); box-shadow: 0 0 0 1.5px var(--brand) inset; }
+  .draw-row .tag { margin-left: 8px; font-size: 11px; font-weight: 800; color: var(--brand); border: 1px solid var(--brand);
+    border-radius: 999px; padding: 2px 8px; vertical-align: 1px; }
+  .draw-row .check { flex: none; color: var(--brand); font-weight: 800; font-size: 16px; opacity: 0; }
+  .draw-row.sel .check { opacity: 1; }
+
+  .ball.pend { background: transparent; color: var(--miss); border: 1.5px dashed var(--line); text-shadow: none; font-weight: 600; }
+  #tickets { margin-top: 12px; }
+  #tickets .banner { margin-bottom: 10px; }
+  .empty.small { padding: 18px 10px; }
+
+  .linkbtn { display: block; width: 100%; border: 0; background: none; color: var(--sub); font: inherit; font-size: 13px;
+    text-decoration: underline; text-underline-offset: 3px; padding: 4px 0 12px; }
+  .btn.wide { width: 100%; flex-direction: row; justify-content: center; padding: 15px 8px; margin-top: 12px; }
+
+  /* 하단 배너 광고(네이티브 뷰)가 시트를 가리지 않도록 광고 높이만큼 위로 띄운다 */
+  .sheet { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; z-index: 20; padding-bottom: var(--ad-h, 0px); }
+  .sheet[hidden] { display: none; }
+  .sheet-body { width: 100%; max-width: 560px; margin: 0 auto; max-height: 92vh; overflow-y: auto; background: var(--card);
+    border-radius: 22px 22px 0 0; padding: 16px 16px calc(env(safe-area-inset-bottom) + 16px); }
+  .sheet-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; font-size: 17px; }
+  .sheet-head .icon-btn { width: 36px; height: 36px; font-size: 15px; }
+  .select { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; font-size: 15px; }
+  .mrow { display: flex; align-items: center; gap: 5px; margin-bottom: 8px; }
+  .mrow .label { width: 12px; flex: none; }
+  .mnum { flex: 1; min-width: 0; max-width: 46px; height: 42px; padding: 0; text-align: center; font: inherit; font-weight: 800; font-size: 16px;
+    border-radius: 50%; border: 1.5px solid var(--line); background: var(--bg); color: var(--ink); }
+  .mnum:focus { outline: 2px solid var(--brand); border-color: transparent; }
+  .mdel { flex: none; border: 0; background: none; color: var(--sub); font-size: 15px; padding: 8px 4px; }
+  .err { color: #d14343; font-size: 13px; min-height: 18px; margin-top: 8px; }
+
+  #toast { position: fixed; left: 50%; bottom: calc(60px + var(--ad-h, 0px)); transform: translateX(-50%); background: #1d2523; color: #fff;
+    padding: 12px 16px; border-radius: 12px; font-size: 14px; max-width: 88%; text-align: center; opacity: 0;
+    pointer-events: none; transition: opacity .2s; z-index: 10; }
+  #toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>복권 알림이</h1>
+    <div class="hbtns">
+      <button id="refresh" class="icon-btn" type="button" aria-label="결과 새로 확인">↻</button>
+      <button id="bell" class="icon-btn" type="button" aria-label="추첨 알림" aria-pressed="true">🔔</button>
+    </div>
+  </header>
+
+  <button id="reg-open" class="regbtn" type="button">
+    <span class="plus2">＋</span>
+    <span class="lbl">복권 등록<small>촬영하거나 갤러리에서 바로 등록</small></span>
+  </button>
+
+  <main id="main">
+    <section class="card draw">
+      <div class="nav">
+        <button id="prev" class="navbtn" type="button" aria-label="이전 회차">‹</button>
+        <button id="nav-open" class="navtitle" type="button" aria-haspopup="dialog" aria-label="회차 선택">
+          <span class="t"><span id="nav-t"></span><span class="caret">▾</span></span>
+          <span class="s" id="nav-s"></span>
+        </button>
+        <button id="next" class="navbtn" type="button" aria-label="다음 회차">›</button>
+      </div>
+      <div id="drawcard"></div>
+    </section>
+
+    <div id="tickets"></div>
+  </main>
+
+  <div id="reg-sheet" class="sheet" hidden>
+    <div class="sheet-body" role="dialog" aria-label="복권 등록">
+      <div class="sheet-head"><b>복권 등록</b><button id="reg-close" class="icon-btn" type="button" aria-label="닫기">✕</button></div>
+      <button id="scan" class="opt primary" type="button">
+        <span class="em">📷</span><span><b>복권 촬영</b><span class="d">복권의 QR코드를 카메라로 비춰요</span></span>
+      </button>
+      <button id="pick" class="opt" type="button">
+        <span class="em">🖼️</span><span><b>갤러리에서 등록</b><span class="d">저장해 둔 사진을 여러 장 한 번에</span></span>
+      </button>
+      <button id="manual" class="linkbtn" type="button">QR이 안 읽히나요? 번호 직접 입력</button>
+    </div>
+  </div>
+
+  <div id="draw-sheet" class="sheet" hidden>
+    <div class="sheet-body" role="dialog" aria-label="회차 선택">
+      <div class="sheet-head"><b>회차 선택</b><button id="draw-sheet-close" class="icon-btn" type="button" aria-label="닫기">✕</button></div>
+      <div id="draw-list" class="draw-list"></div>
+    </div>
+  </div>
+
+  <div id="sheet" class="sheet" hidden>
+    <div class="sheet-body" role="dialog" aria-label="번호 직접 입력">
+      <div class="sheet-head"><b>번호 직접 입력</b><button id="sheet-close" class="icon-btn" type="button" aria-label="닫기">✕</button></div>
+      <div class="label" style="margin:2px 0 6px">회차</div>
+      <select id="m-draw" class="select"></select>
+      <div class="label" style="margin:14px 0 6px">번호 (게임마다 6개)</div>
+      <div id="m-games"></div>
+      <button id="m-add" class="linkbtn" type="button" style="margin:6px 0 0">+ 게임 추가 (최대 5게임)</button>
+      <div id="m-err" class="err" role="alert"></div>
+      <button id="m-save" class="btn primary wide" type="button">복권 등록</button>
+    </div>
+  </div>
+
+  <div id="toast" role="status"></div>
+
+  <script src="config.js"></script>
+  <script src="lotto.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

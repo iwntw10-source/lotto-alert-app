@@ -1,0 +1,11 @@
+node_modules/
+android/build/
+android/app/build/
+android/.gradle/
+android/local.properties
+*.log
+
+# 릴리스 서명 키 — 절대 git에 올리지 말 것 (분실하면 앱 업데이트 불가, 유출되면 위조 위험)
+android/keystore.properties
+*.jks
+*.keystore

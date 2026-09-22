@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">복권 알림이</string>
+    <string name="title_activity_main">복권 알림이</string>
+    <string name="package_name">com.lottoalert.app</string>
+    <string name="custom_url_scheme">com.lottoalert.app</string>
+    <!-- AdMob 앱 ID. 지금은 Google 공식 테스트 앱 ID — 출시 전에 AdMob 콘솔에서 이 앱을 등록해 발급받은 값으로 교체 (www/config.js 의 광고 단위 ID 와 같은 앱이어야 함) -->
+    <string name="admob_app_id">ca-app-pub-3940256099942544~3347511713</string>
+</resources>

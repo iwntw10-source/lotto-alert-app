@@ -1,0 +1,24 @@
+{
+  "name": "lotto-alert-app",
+  "version": "0.1.0",
+  "description": "복권 알림이 - 복권 QR을 등록하면 추첨 당일 당첨 여부를 알려주는 Capacitor 앱",
+  "private": true,
+  "scripts": {
+    "test": "node test/lotto.test.js",
+    "sync": "npx cap sync",
+    "assets": "node tools/make-assets.js && capacitor-assets generate --android"
+  },
+  "dependencies": {
+    "@capacitor-community/admob": "^8.1.0",
+    "@capacitor-mlkit/barcode-scanning": "^8.2.1",
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/camera": "^8.2.4",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/local-notifications": "^8.3.1"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.5.2"
+  }
+}
