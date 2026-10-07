@@ -8,6 +8,13 @@
 - 사용자가 직접 해야 하는 일(콘솔 설정 등)은 **단계별 목록**으로.
 - 작업 후 기본 흐름: versionCode 올려 **App Tester(Firebase App Distribution)** 배포.
 
+## 동기화 (PC·NAS·폰·다른 PC 공용)
+- 기준 저장소는 **NAS GitLab**(`nas` 리모트, `http://192.168.0.55:8929`). 어느 기기에서 작업하든 같은 코드를 보도록:
+  - **작업 시작 전** `git pull --rebase --autostash`
+  - **작업 한 덩어리가 끝날 때마다** 한국어로 커밋하고 바로 `git push`. 미루면 다른 기기와 어긋난다.
+- PC 는 `git push` 한 번에 NAS + GitHub 둘 다 올라간다(`remote.nas.pushurl` 두 개). GitHub 는 Render 자동 배포용이라 계속 같이 맞춰야 한다.
+- 비밀 파일(`.env`, `keystore.properties`, `*.jks`, `*.keystore`)은 절대 커밋하지 말 것.
+
 ## 구조
 - Capacitor 8, 프레임워크 없음: `www/index.html` + `www/app.js`(화면) + `www/lotto.js`(순수 로직) + `www/config.js`(AdMob, 아직 테스트 ID).
 - 플러그인: @capacitor-mlkit/barcode-scanning(촬영·갤러리 QR), @capacitor/camera, local-notifications, CapacitorHttp(CORS 우회), 네이티브 `LottoWorker`(WorkManager).
